@@ -32,19 +32,37 @@ export default class User extends Component {
   state = {
     stars: [],
     loading: false,
+    page: 1,
   };
 
   async componentDidMount() {
-    const {navigation} = this.props;
-
-    const user = navigation.getParam('user');
-
     this.setState({loading: true});
-
-    const response = await api.get(`/users/${user.login}/starred`);
-
-    this.setState({stars: response.data, loading: false});
+    this.loadStars();
+    this.setState({loading: false});
   }
+
+  loadStars = async (page = 1) => {
+    const {navigation} = this.props;
+    const user = navigation.getParam('user');
+    const {stars} = this.state;
+
+    try {
+      const response = await api.get(`/users/${user.login}/starred`, {
+        params: {
+          page,
+        },
+      });
+      this.setState({stars: [...stars, ...response.data], page});
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadMore = async () => {
+    const {page} = this.state;
+    const pageNumber = page + 1;
+    this.loadStars(pageNumber);
+  };
 
   render() {
     const {navigation} = this.props;
@@ -74,6 +92,8 @@ export default class User extends Component {
                 </Info>
               </Starred>
             )}
+            onEndReachedThreshold={0.2}
+            onEndReached={this.loadMore}
           />
         )}
       </Container>
