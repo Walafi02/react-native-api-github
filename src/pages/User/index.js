@@ -41,10 +41,10 @@ export default class User extends Component {
     this.setState({loading: false});
   }
 
-  loadStars = async (page = 1) => {
+  loadStars = async (page = 1, stars = []) => {
     const {navigation} = this.props;
     const user = navigation.getParam('user');
-    const {stars} = this.state;
+    // const {stars} = this.state;
 
     try {
       const response = await api.get(`/users/${user.login}/starred`, {
@@ -54,14 +54,19 @@ export default class User extends Component {
       });
       this.setState({stars: [...stars, ...response.data], page});
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error);
     }
   };
 
   loadMore = async () => {
-    const {page} = this.state;
+    const {page, stars} = this.state;
     const pageNumber = page + 1;
-    this.loadStars(pageNumber);
+    this.loadStars(pageNumber, stars);
+  };
+
+  refreshList = () => {
+    this.loadStars();
   };
 
   render() {
@@ -94,6 +99,8 @@ export default class User extends Component {
             )}
             onEndReachedThreshold={0.2}
             onEndReached={this.loadMore}
+            onRefresh={this.refreshList}
+            refreshing={false}
           />
         )}
       </Container>
