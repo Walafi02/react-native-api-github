@@ -29,6 +29,7 @@ export default class Main extends Component {
     }).isRequired,
   };
 
+  // eslint-disable-next-line react/sort-comp
   static navigationOptions = {
     title: 'Usuários',
   };
