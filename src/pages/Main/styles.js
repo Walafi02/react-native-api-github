@@ -23,6 +23,7 @@ export const Input = styled.TextInput.attrs({
   border-radius: 4px;
   padding: 0 15px;
   border: 1px solid #eee;
+  border-color: ${props => (props.errorUser ? '#f00' : '#eee')};
 `;
 
 export const ButtonSubmit = styled(RectButton)`

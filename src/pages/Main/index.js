@@ -35,12 +35,15 @@ export default class Main extends Component {
   };
 
   state = {
-    newUser: 'diego3g',
+    newUser: '',
     users: [],
     loading: false,
+    errorUser: false,
   };
 
   async componentDidMount() {
+    // AsyncStorage.setItem('users', '');
+
     const users = await AsyncStorage.getItem('users');
     if (users) {
       this.setState({users: JSON.parse(users)});
@@ -60,20 +63,38 @@ export default class Main extends Component {
 
     this.setState({loading: true});
 
-    const response = await api.get(`/users/${newUser}`);
+    try {
+      if (newUser === '') throw new Error('Usuário Não Informado');
 
-    const data = {
-      name: response.data.name,
-      login: response.data.login,
-      bio: response.data.bio,
-      avatar: response.data.avatar_url,
-    };
+      const verification = users.find(user => {
+        return user.login.toLowerCase() === newUser.toLowerCase();
+      });
 
-    this.setState({
-      users: [...users, data],
-      newUser: '',
-      loading: false,
-    });
+      if (verification) throw new Error('Usuário Duplicado');
+
+      const response = await api.get(`/users/${newUser}`);
+
+      const data = {
+        name: response.data.name,
+        login: response.data.login,
+        bio: response.data.bio,
+        avatar: response.data.avatar_url,
+      };
+
+      this.setState({
+        users: [...users, data],
+        errorUser: false,
+      });
+    } catch (error) {
+      this.setState({
+        errorUser: true,
+      });
+    } finally {
+      this.setState({
+        newUser: '',
+        loading: false,
+      });
+    }
 
     Keyboard.dismiss();
   };
@@ -85,7 +106,7 @@ export default class Main extends Component {
   };
 
   render() {
-    const {users, newUser, loading} = this.state;
+    const {users, newUser, loading, errorUser} = this.state;
 
     return (
       <Container>
@@ -98,6 +119,7 @@ export default class Main extends Component {
             onChangeText={text => this.setState({newUser: text})}
             returnKeyType="send"
             onSubmitEditing={this.handleAddUser}
+            errorUser={errorUser}
           />
 
           <ButtonSubmit loading={loading} onPress={this.handleAddUser}>
